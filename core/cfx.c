@@ -16,11 +16,14 @@ int main (int argc, char *argv [])
   FftType *fftinfo = NULL;
   CorrOutType corr;
   int i = 0, j = 0, rd_reg = -1;
-  FILE *fftwordfile = NULL;
+  FILE *fbin = NULL;
+  char fname[16] = {0,};
   unsigned int setsize = Samps2Frame * Frames2Set; // Bytes.
   unsigned int stasize = setsize * Sets2STA;       // Bytes.
 
-  if ((fftwordfile=fopen ("set_fft_wordvector.bin", "wb")) == NULL)
+  gen_bin_fname (fname, 16);
+  fprintf (stderr, "# Writing correlated packets to file %s\n", fname);
+  if ((fbin=fopen (fname, "wb")) == NULL)
   { perror ("fopen"); return -1; }
 
   // Get FFTW initialized
@@ -66,16 +69,23 @@ int main (int argc, char *argv [])
 
       // for (j=0; j<Sets2STA; j+=Frames2Set) // Process every set within STA.
       { fftw_set_fft (set + j*setsize, Frames2Set, fftinfo); // FFT of one set.
+        // print_fftout_file (fftinfo, stderr);           // ASCII dump of set.
+        // dump_setoutput_file (fftinfo, fftwordfile);    // BLOB dump to file.
 
-        // fftw_set_print_fftout_file (fftinfo, stderr); // ASCII dump of a set.
-        // fftw_set_dump_file (fftinfo, fftwordfile);    // BLOB dump to file.
-
-        xmac_set (fftinfo, &corr);         // XMAC within a set, output in 
-                                           // corr.
-        // xmac_set_print_reim_file (&corr, stdout);// print for debug.
-        xmac_set_print_ampph_file (&corr, stdout, 1);// print for debug.
+        xmac_set (fftinfo, &corr);             // XMAC within a set, output in 
+                                               // corr.
+        // print_xmac_reim_file (&corr, stdout);    // print for debug.
+        // print_xmac_ampph_file (&corr, stdout, 1);// print for debug.
+        dump_xmac_reim_file (&corr, fbin);          // Dump contents to disk
       }
     }
+
+    // Finished operating on memory region, set registry entry as empty.
+    if (registry_change_region_status (shm->registry, rd_reg, Empty) < 0)
+    { fprintf (stderr, "### Unable to change registry status!\n"); } 
+
+    fprintf (stderr, "<--    Region %d Processed. Status: %s\n", rd_reg,
+                 RegionStatus[shm->registry->region[rd_reg].status]);
   }
   
   if (destroy_partition (shm) < 0)
@@ -84,6 +94,6 @@ int main (int argc, char *argv [])
   if (deinit_fftw (fftinfo) < 0)
   { fprintf (stderr, "deinit_fftw failed!\n"); }
 
-  if (fftwordfile) fclose (fftwordfile);
+  if (fbin) fclose (fbin);
   return 0;
 }

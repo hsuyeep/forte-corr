@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <math.h>
+#include <sys/time.h>
+#include <time.h>
 #include "../include/corrops.h"    // Holds datastructures and functions 
                                    // specific to FFT and XMAC.
 #include "../include/datalayout.h" // For raw frame layout
@@ -113,7 +115,7 @@ int deinit_fftw (FftType *fftinfo)
  * A39im {ch0ts00 ch1ts00 ch0ts01 ch1ts01 ch0ts02 ch1ts02 ch0ts03 ch1ts03} |512 
  * -----------------------------------------------------------------------
  */
-inline int fftw_shuffle_antpair (FftType *fft)
+inline int shuffle_fft_antpair (FftType *fft)
 { if (fft == NULL) return -1;
   int ant = 0, ch = 0, ts = 0, j = 0, m = 0;
   WordVectorType *chgrpant = NULL; 
@@ -163,7 +165,7 @@ inline int fftw_shuffle_antpair (FftType *fft)
 
 /* Function to print the shuffled output as created by fftw_shuffle_antpair ()
  */
-int fftw_print_shuffle_antpair (FftType *fft, FILE *fp)
+int print_shuffle_fft_antpair (FftType *fft, FILE *fp)
 { if (fft == NULL || fp == NULL) return -1;
   int ch=0, ant=0, ts=0, j=0, m=0;
   WordVectorType *vec= NULL;
@@ -223,7 +225,7 @@ int fftw_print_shuffle_antpair (FftType *fft, FILE *fp)
  * A39im {ch0ts00 ch1ts00 ch0ts01 ch1ts01 ch0ts02 ch1ts02 ch0ts03 ch1ts03} |512 
  * -----------------------------------------------------------------------
  */
-inline int fftw_shuffle (FftType *fft)
+inline int shuffle_fft (FftType *fft)
 { if (fft == NULL) return -1;
   int i = 0, j = 0, k = 0, m = 0;
   int chans = fft->taps/2;
@@ -283,7 +285,7 @@ inline int shuffle_fill_pattern (FftType *fft)
  * assumed to be appropriately positioned for the passed FFT timeslice.
  */
 
-inline int fftw_retrieve_pair (fftwf_complex *out, short *packout, 
+inline int retrieve_pair_fft (fftwf_complex *out, short *packout, 
                                       int chans)
 { if (out == NULL || packout == NULL) return -1;
   int i = 0, taps = 2*chans;
@@ -332,7 +334,7 @@ inline int fftw_frame (unsigned char *framedat, FftType *finfo, short *out)
     // Retrieve pair, write float complex data as short complex, for a
     // pair of antennae.
     // Output data format is detailed in datalayout.h
-    fftw_retrieve_pair (finfo->out, out + 2*i*Taps, chans);
+    retrieve_pair_fft (finfo->out, out + 2*i*Taps, chans);
 
 #if 0
     // Debug: Write out raw data, complex output, retrieve pair output to file.
@@ -399,7 +401,7 @@ inline int fftw_set_fft(unsigned char *framedat, int nantpairs, FftType *fft)
   // All antennas' spectra with consecutive channels per antenna is available 
   // in fft->fftout. We reorganize them for XMAC, storing the result in
   // fftout, ready for XMAC.
-  fftw_shuffle_antpair (fft);
+  shuffle_fft_antpair (fft);
   // fftw_print_shuffle_antpair (fft, stderr);
   
   return 0;
@@ -407,7 +409,7 @@ inline int fftw_set_fft(unsigned char *framedat, int nantpairs, FftType *fft)
 
 /* Function to dump WordVectorType for a set to file, for debug
  */
-int fftw_set_dump_file (FftType *fft, FILE *fp)
+int dump_setoutput_file (FftType *fft, FILE *fp)
 { if (fft == NULL || fp == NULL) return -1;
   int bytes2write = 
       sizeof (WordVectorType) * Antennas * Vectors2Frame * ChanGroups;
@@ -421,7 +423,7 @@ int fftw_set_dump_file (FftType *fft, FILE *fp)
 /* Function to print out the generated FFT to specified file.
  *  Prints the contents of finfo->setoutput.
  */
-int fftw_set_print_setoutput (FftType *finfo, FILE *fp)
+int print_setoutput_file (FftType *finfo, FILE *fp)
 { if (finfo == NULL || fp == NULL) return -1;
   int i = 0, j = 0, k = 0;
 
@@ -443,7 +445,7 @@ int fftw_set_print_setoutput (FftType *finfo, FILE *fp)
 /* Function to print out the generated FFT to specified file.
  *  Prints the contents of finfo->fftout.
  */
-int fftw_set_print_fftout_file (FftType *finfo, FILE *fp)
+int print_fftout_file (FftType *finfo, FILE *fp)
 { if (fp == NULL || finfo == NULL) return -1;
   int i = 0, j = 0, k =0, m =0;
   WordVectorType *word = finfo->fftout;
@@ -469,6 +471,7 @@ int fftw_set_print_fftout_file (FftType *finfo, FILE *fp)
   }
   return 0;
 }
+
 /* Function to fill the input to xmac (ie, fft output) with a known pattern for
  * debugging xmac implementations. The fft output is expected to be short ints, 
  * with a layout as described in fftw_shuffle_antpair ().
@@ -554,7 +557,7 @@ int xmac_set (FftType *finfo, CorrOutType *corr)
  * Assuming data is laid out in integer re/im format, as described in 
  * xmac_set().
  */
-int xmac_set_print_reim_file (CorrOutType *corr, FILE *fp)
+int print_xmac_reim_file (CorrOutType *corr, FILE *fp)
 { if (corr == NULL || fp == NULL) return -1;
   int i = 0, j = 0, blinesize = Taps;
 
@@ -573,7 +576,7 @@ int xmac_set_print_reim_file (CorrOutType *corr, FILE *fp)
  * Assuming data is laid out in integer re/im format, as described in 
  * xmac_set().
  */
-int xmac_set_print_ampph_file (CorrOutType *corr, FILE *fp, int log)
+int print_xmac_ampph_file (CorrOutType *corr, FILE *fp, int log)
 { if (corr == NULL || fp == NULL) return -1;
   int i = 0, j = 0, blinesize = Taps;
   float re = 0, im = 0;
@@ -600,6 +603,35 @@ int xmac_set_print_ampph_file (CorrOutType *corr, FILE *fp, int log)
       fprintf (fp, "\n\n");
     }
   }
+
+  return 0;
+}
+
+/* Function to dump binary correlated frames to disk
+ * (Currently without any metadata)
+ */
+int dump_xmac_reim_file (CorrOutType *corr, FILE *fp) 
+{ if (corr == NULL || fp == NULL) return -1;
+  
+  int bytes2write = 
+      sizeof (int) * Blines * Taps;
+
+  if (fwrite (corr->corr, 1, bytes2write, fp) < bytes2write)
+  { perror ("fwrite"); return -1; }
+
+  return 0;
+}
+
+int gen_bin_fname (char *fname, int len)
+{ if (fname == 0 || len < 0) return -1;
+  char months[12][4] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"
+                      "Sep", "Oct", "Nov", "Dec"};
+  struct timeval tv;
+  struct tm *t = NULL;
+  gettimeofday (&tv, NULL);
+  t = localtime (&tv.tv_sec);
+  sprintf (fname, "%02d%02d%02d_%02d%s%02d.bin", t->tm_hour, t->tm_min, 
+           t->tm_sec, t->tm_mday, months[t->tm_mon], t->tm_year%100);
 
   return 0;
 }

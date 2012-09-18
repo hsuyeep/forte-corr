@@ -14,11 +14,11 @@ int main ()
 
   xmac_fill_pattern (&finfo);
   fprintf (stderr, "# ---- XMAC input ----\n");
-  fftw_set_print_fftout_file (&finfo, stderr);
+  print_fftout_file (&finfo, stderr);
 
   xmac_set (&finfo, &corr);
 
   fprintf (stderr, "# ---- XMAC output ----\n");
-  xmac_set_print_reim_file (&corr, stderr);
+  print_xmac_reim_file (&corr, stderr);
   return ;
 }

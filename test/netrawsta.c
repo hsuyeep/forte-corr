@@ -14,6 +14,7 @@
 #include "../include/datalayout.h"
 #include "../include/netmgmt.h"
 #include "../include/memmgmt.h"
+#include "../include/testops.h"
 
 int Done = 0;
 void sig_hdlr (int dummy)

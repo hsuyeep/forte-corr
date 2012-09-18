@@ -299,7 +299,7 @@ int find_rd_region (ShmType *shm, int block)
 { int i = 0, found = 0;
 
   if (block == NonBlock) // NON BLOCKING CASE
-  { // Scan through registry for a region with status EMPTY
+  { // Scan through registry for a region with status FULL 
     for (i=0; i<Regions2Part; i++)
     { if (shm->registry->region[i].status == Full)
       { // Found an empty region: Mark status as READING, return.

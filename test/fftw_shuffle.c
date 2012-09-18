@@ -12,11 +12,11 @@ int main ()
 
   shuffle_fill_pattern (finfo);
   fprintf (stderr, "\n\n# ---- Filled data pattern Shuffled FFT output ----\n");
-  fftw_set_print_setoutput (finfo, stderr);
-  fftw_shuffle (finfo);
+  print_setoutput_file (finfo, stderr);
+  shuffle_fft (finfo);
 
   fprintf (stderr, "\n\n# ---- Shuffled FFT output ----\n");
-  fftw_set_print_fftout_file (finfo, stderr);
+  print_fftout_file (finfo, stderr);
 
   deinit_fftw (finfo);
   return 0;

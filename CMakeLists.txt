@@ -50,7 +50,7 @@ target_link_libraries (cfx rt ${FFTW_LIBRARIES} m)
 add_executable(netrawsta test/netrawsta.c core/memmgmt.c core/netmgmt.c) 
 target_link_libraries (netrawsta rt)
 
-add_executable(filerawsta test/filerawsta.c core/memmgmt.c core/netmgmt.c) 
+add_executable(filerawsta test/filerawsta.c test/testops.c core/memmgmt.c core/netmgmt.c) 
 target_link_libraries (filerawsta rt m)
 
 add_executable(xmac_set test/xmac_set.c core/corrops.c) 

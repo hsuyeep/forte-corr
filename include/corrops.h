@@ -24,16 +24,22 @@ typedef struct
 // Function prototypes
 int init_fftw   (FftType **);
 int deinit_fftw (FftType *);
-inline int fftw_shuffle (FftType *);
+inline int shuffle_fft_antpair (FftType *);
+inline int print_shuffle_fft_antpair (FftType *, FILE *);
+inline int shuffle_fft (FftType *);
 inline int shuffle_fill_pattern (FftType *);
-inline int fftw_retrieve_pair (fftwf_complex *, short *, int );
+inline int retrieve_pair_fft (fftwf_complex *, short *, int );
 // int fftw_fft (RawRegionPtrType *, int , FftType *);
 inline int fftw_frame (unsigned char *, FftType *, short *);
 inline int fftw_set_fft (unsigned char *, int , FftType *);
-int fftw_set_print_fftout_file (FftType *, FILE *);
-int fftw_set_dump_file (FftType *, FILE *);
+int dump_setoutput_file (FftType *, FILE *);
+int print_setoutput_file (FftType *, FILE *);
+int print_fftout_file (FftType *, FILE *);
+inline int xmac_fill_pattern (FftType *);
 int xmac_set (FftType *, CorrOutType *);
-int xmac_set_print_file (CorrOutType *, FILE *);
-int fftw_set_print_fftout_file (FftType *, FILE *);
+int print_xmac_reim_file (CorrOutType *, FILE *);
+int print_xmac_ampph_file (CorrOutType *, FILE *, int );
+int dump_xmac_reim_file (CorrOutType *, FILE *);
+int gen_bin_fname (char *, int len);
 
 #endif // __CORROPS_H__

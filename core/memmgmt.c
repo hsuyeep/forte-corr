@@ -24,9 +24,64 @@ void mem_sig_hdlr (int dummy)
   return;
 }
 
+int attach_partition (ShmType *shm)
+{ if (shm == NULL) return -1;
+
+  if ((shm->fd=shm_open (shm->path, O_CREAT|O_RDWR, S_IRUSR|S_IWUSR)) < 0)
+  { perror ("attach_partition"); return -1;}
+  ftruncate (shm->fd, shm->size);
+
+  // NOTE: MAP_ANONYMOUS or MAP_HUGEPAGES?
+  if ((shm->ptr = mmap (NULL, shm->size, PROT_READ|PROT_WRITE, MAP_SHARED, 
+                        shm->fd, 0)) == MAP_FAILED)
+  { perror ("attach_partition():"); return -1; }
+
+  return 0;
+}
+
+/* Create a single, control Shared memory region, to be shared by all readers.
+ */
+enum {ProcDataSrv=0xe0ff};
+int create_ctrl_partition (ShmType *shm)
+{ if (shm == NULL) return -1;
+  CtrlPartitionInfoType *partinfo = NULL;
+  int i = 0; 
+
+  if (shm->path[0] == 0)
+  { fprintf (stderr, "### create_part(): No shm->path found! Quitting...\n");
+    return -1;
+  }
+
+  shm->size = sizeof (CtrlPartitionInfoType);
+  shm->regions = 1; // Only a single region is created.
+
+  attach_partition (shm);
+  partinfo = (CtrlPartitionInfoType*) shm->ptr;
+
+  // No registry being created.
+  shm->registry = NULL;
+  shm->curr_reg = 0;
+
+  // Partition registry Initialization: Initialize all region parameters.
+  // Create semaphore for access control on registry.
+  // initial value = 1, shared between processes
+  if (sem_init (&partinfo->sem, 1, 1) < 0) 
+  { perror ("create_partition():"); }
+
+  partinfo->currently_active = 0;
+  // Fill in writer specific information.
+  for (i=0; i<Partitions; i++)
+  { partinfo->rinfo[i].total_partitions = Partitions;
+    sprintf (partinfo->rinfo[i].partition_path, "/part%d", i+1);
+    sprintf (partinfo->rinfo[i].portname, "%d", ProcDataSrv + i+1);
+  }
+
+  return 0; 
+}
+
 /* Create a single Shared memory partition, with parameters provided in ShmType.
  * Fills other fields in ShmType. Also initializes the region registry per 
- * partition.
+ * partition. NOTE: This partition is meant for data exchange.
  */
 int create_partition (ShmType *shm)
 { if (shm == NULL) return -1;
@@ -99,6 +154,18 @@ int create_partition (ShmType *shm)
   }
 #endif 
 
+  return 0; 
+}
+
+int destroy_ctrl_partition (ShmType *shm)
+{ if (shm == NULL) return -1;
+  CtrlPartitionInfoType *partinfo = (CtrlPartitionInfoType*) shm->ptr;
+
+  if (sem_destroy (&partinfo->sem) < 0)
+  { perror ("destroy_partition():"); }
+
+  if (munmap (shm->ptr, shm->size) < 0) perror ("destroy_partition()");
+  if (shm_unlink (shm->path) < 0) perror ("destroy_partition()");
   return 0; 
 }
 

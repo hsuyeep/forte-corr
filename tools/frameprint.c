@@ -3,6 +3,7 @@
  */
 
 #include "../include/datalayout.h"
+#include "../build/version.h"
 #include <stdio.h>
 #include <errno.h>
 
@@ -13,6 +14,9 @@ int main (int argc, char *argv [])
 
   if (argc < 2)
   { fprintf (stderr, "Usage: %s rawfile.dat\n", argv[0]); return -1; }
+
+  fprintf (stderr, "# ---- %s: Raw data print from file ----\n", argv[0]);
+  fprintf (stderr, "# ---- %s ----\n\n", HUMAN_NAME);
 
   if ((fraw=fopen (argv[1], "rb")) == NULL)
   { perror ("fopen"); return -1; }

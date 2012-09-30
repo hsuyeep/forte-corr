@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <string.h>
 #include "../include/memmgmt.h"
+#include "../build/version.h"
 
 int main (int argc, char *argv [])
 { ShmType partition, *shm = NULL;
@@ -25,15 +26,17 @@ int main (int argc, char *argv [])
   char rawfname[32] = "dump.raw";
   int dumpregions = 1;
   
+  fprintf (stderr, "# ---- %s: Dump shared memory contents to disk ----\n", 
+           argv[0]);
+  fprintf (stderr, "# ---- %s ----\n\n", HUMAN_NAME);
+
   if ((fraw=fopen (rawfname, "wb")) == NULL)
   { perror ("fopen"); return -1; }
 
   // Set all partition parameters to 0.
   bzero (&partition, sizeof (ShmType));
 
-  fprintf (stderr, "# ---- Raw Data dump to disk ----\n");
   fprintf (stderr, "# Attaching to shared memory region.\n");
-
   memcpy (partition.path, "/part0", 16); // Currently hardcoded path and size.
 
   if (create_partition (&partition) < 0) 

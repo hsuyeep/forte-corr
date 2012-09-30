@@ -17,6 +17,7 @@ int NetDone = 0; // NOTE: Global defined here, only declared in header, in order
                  // to prevent multiple definition errors.
 void net_sig_hdlr (int dummy)
 { fprintf (stderr, "mem_sig_hdlr: Terminating memory partitions.\n");
+  dummy = 0;
   NetDone = 1;
 
   return;
@@ -32,6 +33,8 @@ int init_data_link (LinkInfoType *linfo)
   hints.ai_socktype = SOCK_DGRAM;
   hints.ai_flags = AI_PASSIVE; // use my IP
 
+  // NOTE: Port on which raw data is written by hardware is fixed in
+  // datalayout.h
   sprintf (linfo->portname, "%d", DataSrv);
   if ((rv=getaddrinfo (linfo->linkname, linfo->portname, &hints, 
                       &linfo->servinfo)) != 0) 

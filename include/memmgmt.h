@@ -24,7 +24,8 @@
 
 extern int MemDone;
 enum {Partitions=3};        // One for every attached process, which runs on a 
-                            // single processor/core.
+                            // single processor/core. This also controls the 
+                            // number of reader processes created.
 
 /* Structure defining a single region of memory which is passed as a unit to 
  * an FX process. A region contains raw data for several STA cycles, as 
@@ -72,10 +73,33 @@ typedef struct
   RawRegionPtrType regptr[Regions2Part];
 } ShmType;
 
+// Object containing information for and about a partition reader.
+// 'Partitions' number of these objects populate the control partition.
+typedef struct
+{ // Parameters filled by ioproc.
+  int total_partitions;   // Total partitions available to readers.
+  char portname[16];      // Port number to which processed data should be sent
+			  // by the reader.
+  char partition_path[16];// The path with which readers should attach to the 
+                          // partition allocated to them.
+                          
+  // Parameters filled by the reader process claiming this partition.
+  int claimed;            // 1 => this partition is claimed by a reader.
+  char linkname[16];      // IP address to which processed data will be sent.
+} ReaderInfoType;
+
+typedef struct
+{ ReaderInfoType rinfo[Partitions];
+  int currently_active;   // Currently active reader processes.
+  sem_t sem;              // Semaphore for access control to this partition.
+} CtrlPartitionInfoType;
 
 // Function prototypes
 void mem_sig_hdlr (int dummy);
+int attach_partition (ShmType *);
+int create_ctrl_partition (ShmType *);
 int create_partition (ShmType *);
+int destroy_ctrl_partition (ShmType *);
 int destroy_partition (ShmType *);
 
 int registry_print (ShmType *, FILE *);

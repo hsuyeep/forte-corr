@@ -4,10 +4,14 @@
 
 #include <stdio.h>
 #include "../include/corrops.h"
+#include "../build/version.h"
 
-int main ()
+int main (int argc, char *argv [])
 { FftType *finfo;
   
+  fprintf (stderr, "# ---- %s: Test FFT shuffle output ----\n", argv[0]);
+  fprintf (stderr, "# ---- %s ----\n\n", HUMAN_NAME);
+
   init_fftw (&finfo);
 
   shuffle_fill_pattern (finfo);

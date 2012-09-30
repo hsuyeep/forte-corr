@@ -15,6 +15,7 @@
 #include "../include/netmgmt.h"
 #include "../include/memmgmt.h"
 #include "../include/testops.h"
+#include "../build/version.h"
 
 int Done = 0;
 void sig_hdlr (int dummy)
@@ -31,6 +32,10 @@ int main (int argc, char *argv[])
   struct timeval start, end;
   float elapse = 0;
   int nset = 0;
+
+  fprintf (stderr, "# ---- %s: Raw data generator over 2GigE links ----\n", 
+           argv[0]);
+  fprintf (stderr, "# ---- %s ----\n\n", HUMAN_NAME);
 
   int fd = open ("/dev/random", O_RDONLY);
   if (fd < 0) 
@@ -92,6 +97,12 @@ int main (int argc, char *argv[])
   fprintf (stdout, "Datarate: %8.4lf MBps, Setrate: %8.4lf sets per sec.\n", 
          (double)(nset*((Samps2Frame*Frames2Set)/1048576.))/elapse, 
          (double)(nset)/elapse); 
+
+  // Tear down network connections
+  if (close_data_link (&link0) < 0)
+  { fprintf (stderr, "# Unable to close datalink %s.\n", link0.linkname); }
+  if (close_data_link (&link1) < 0)
+  { fprintf (stderr, "# Unable to close datalink %s.\n", link0.linkname); }
 
   if (set) free (set);
   close (fd);

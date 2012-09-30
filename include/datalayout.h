@@ -81,7 +81,8 @@ enum {Chans2Group   = 2,             // Operate channel pair at a time.
 
 // Correlated output format, without header
 typedef struct
-{ int corr[Blines*Taps]; // re/im => 2 ints/correlation
+{ FrameHdrType hdr;
+  int corr[Blines*Taps]; // re/im => 2 ints/correlation
 } CorrOutType;
 
 #endif // __DATA_LAYOUT_H__

@@ -11,6 +11,7 @@
 #include <math.h>
 #include "../include/memmgmt.h"
 #include "../include/testops.h"
+#include "../build/version.h"
 
 
 int main (int argc, char *argv[])
@@ -18,6 +19,9 @@ int main (int argc, char *argv[])
   FrameHdrType *hdr = &frame.hdr;
   FILE *fp = NULL;
   unsigned int framecnt = 0;
+
+  fprintf (stderr, "# ---- %s: Raw data generator to file ----\n", argv[0]);
+  fprintf (stderr, "# ---- %s ----\n\n", HUMAN_NAME);
 
   int fd = open ("/dev/random", O_RDONLY);
   if (fd < 0) 

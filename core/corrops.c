@@ -371,7 +371,7 @@ inline int fftw_frame (unsigned char *framedat, FftType *finfo, short *out)
  */
 inline int fftw_set_fft(unsigned char *framedat, int nantpairs, FftType *fft)
 { if (framedat == NULL || fft == NULL) return -1;
-  int i = 0, j = 0, k = 0;
+  int i = 0; // , j = 0, k = 0;
 
   // Offset after which to write FFT output, in WordVectorType units.
   // int framefft_off = (fft->taps/2 * Samps2Frame/fft->taps * 2);
@@ -411,7 +411,7 @@ inline int fftw_set_fft(unsigned char *framedat, int nantpairs, FftType *fft)
  */
 int dump_setoutput_file (FftType *fft, FILE *fp)
 { if (fft == NULL || fp == NULL) return -1;
-  int bytes2write = 
+  unsigned int bytes2write = 
       sizeof (WordVectorType) * Antennas * Vectors2Frame * ChanGroups;
 
   if (fwrite (fft->fftout, 1, bytes2write, fp) < bytes2write)
@@ -582,7 +582,9 @@ int print_xmac_ampph_file (CorrOutType *corr, FILE *fp, int log)
   float re = 0, im = 0;
 
   if (log == 1)
-  { for (i=0; i<Blines; i++)
+  { fprintf (fp, "# Tick: 0x%8x, Frameid: 0x%04x, Setid: 0x%04x\n", 
+             corr->hdr.tick, corr->hdr.frameid, corr->hdr.setid);
+    for (i=0; i<Blines; i++)
     { fprintf (fp, "# Baseline %d\n", i);
       for (j=0; j<Taps/2; j++)
       { re = corr->corr[i*blinesize + 2*j    ]; 
@@ -613,10 +615,12 @@ int print_xmac_ampph_file (CorrOutType *corr, FILE *fp, int log)
 int dump_xmac_reim_file (CorrOutType *corr, FILE *fp) 
 { if (corr == NULL || fp == NULL) return -1;
   
-  int bytes2write = 
-      sizeof (int) * Blines * Taps;
+  unsigned int bytes2write = 
+      // sizeof (int) * Blines * Taps;
+      sizeof (CorrOutType);
 
-  if (fwrite (corr->corr, 1, bytes2write, fp) < bytes2write)
+  //if (fwrite (corr->corr, 1, bytes2write, fp) < bytes2write)
+   if (fwrite (corr, 1, bytes2write, fp) < bytes2write)
   { perror ("fwrite"); return -1; }
 
   return 0;
@@ -624,7 +628,7 @@ int dump_xmac_reim_file (CorrOutType *corr, FILE *fp)
 
 int gen_bin_fname (char *fname, int len)
 { if (fname == 0 || len < 0) return -1;
-  char months[12][4] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"
+  char months[12][4] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug",
                       "Sep", "Oct", "Nov", "Dec"};
   struct timeval tv;
   struct tm *t = NULL;

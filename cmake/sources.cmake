@@ -3,7 +3,7 @@
 set(IOPROC_SOURCES
 	core/ioproc.c
 	core/memmgmt.c
-	core/netmgmt.c
+#	core/netmgmt.c
 	include/datalayout.h
 	include/memmgmt.h
 	include/netmgmt.h
